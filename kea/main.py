@@ -19,7 +19,11 @@ from hypothesis.errors import NonInteractiveExampleWarning
 import warnings
 from dataclasses import dataclass
 from kea.utils import SingletonMeta
-from kea.dsl import Mobile
+from typing import TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from kea.dsl import Mobile as Android_Mobile
+    from kea.dsl_hm import Mobile as HarmonyOS_Mobile
+
 warnings.filterwarnings("ignore", category=NonInteractiveExampleWarning)
 import coloredlogs
 coloredlogs.install()
@@ -135,11 +139,14 @@ class Setting:
     replay_output=None
     number_of_events_that_restart_app:int =100
     run_initial_rules_after_every_mutation=True
+    is_harmonyos:bool=False
 
 OUTPUT_DIR = "output"
-d = Mobile()
+from .dsl import Mobile
+# d:Union["Android_Mobile", "HarmonyOS_Mobile"] | None = Mobile()
+d:Union["Android_Mobile", "HarmonyOS_Mobile"] | None = None
 
-def start_kea(kea_core:"Kea", settings = None):
+def start_kea(kea_core:"Kea", settings:"Setting" = None):
     # if settings is None:
     #     settings = kea_core.TestCase.settings
 
@@ -169,10 +176,13 @@ def start_kea(kea_core:"Kea", settings = None):
         replay_output=settings.replay_output,
         kea_core=kea_core,
         number_of_events_that_restart_app=settings.number_of_events_that_restart_app,
-        run_initial_rules_after_every_mutation=settings.run_initial_rules_after_every_mutation
+        run_initial_rules_after_every_mutation=settings.run_initial_rules_after_every_mutation,
+        is_harmonyos=settings.is_harmonyos
     )
-    
+
     global d
+    d = settings.d
+
     d.set_device_serial(settings.device_serial)
     d.set_droidbot(droid)
     droid.start()

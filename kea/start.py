@@ -1,5 +1,6 @@
 from .input_manager import DEFAULT_DEVICE_SERIAL, DEFAULT_POLICY, DEFAULT_TIMEOUT
 from .main import Kea, Setting, start_kea
+from .utils import get_yml_config
 
 import importlib
 import os
@@ -28,11 +29,34 @@ def parse_args():
     options = parser.parse_args()
     return options
 
+def parse_ymal_args(opts):
+    config_dict = get_yml_config()
+    for key, value in config_dict.items():
+        if key.lower() == "system" and value:
+            opts.is_harmonyos = value.lower() == "harmonyos"
+        elif key.lower() == "app_path" and value:
+            opts.apk_path = value
+        elif key.lower() == "policy" and value:
+            opts.input_policy = value
+        elif key.lower() == "output_dir" and value:
+            opts.output_dir = value
+        elif key.lower() == "count" and value:
+            opts.count = value
+        elif key.lower() in ["target", "device", "device_serial"] and value:
+            opts.device_serial = value
+        elif key.lower() in ["property", "properties", "file", "files"] and value:
+            opts.files = value
+    
+    return opts
 
-def import_and_instantiate_classes(files):
+
+def import_and_instantiate_classes(files, settings="Setting"):
     droidcheck_instance = []
     current_path = os.path.abspath(os.getcwd())
     
+    d = get_mobile_driver(settings)
+    settings.d = d
+
     for file in files:
         module_path = os.path.join(current_path, file)
         module_dir = os.path.dirname(module_path)
@@ -43,8 +67,11 @@ def import_and_instantiate_classes(files):
         module_name = os.path.splitext(os.path.relpath(file, start=current_path))[0]
         module_name = module_name.replace("/", ".").replace("\\", ".")
         
+
+
         try:
             module = importlib.import_module(module_name)
+            module.d = d
 
             # Find all classes in the module and attempt to instantiate them.
             for attr_name in dir(module):
@@ -56,12 +83,20 @@ def import_and_instantiate_classes(files):
             print(f"Error importing module {module_name}: {e}")
     return droidcheck_instance
 
+def get_mobile_driver(settings:"Setting"):
+    # initialize the dsl according to the system
+    if not settings.is_harmonyos:
+        from kea.dsl import Mobile
+        return Mobile()
+    else:
+        from kea.dsl_hm import Mobile
+        return Mobile(serial=settings.device_serial)
+
 def main():
     options = parse_args()
+    options = parse_ymal_args(options)
     test_classes = []
-    if options.files is not None:
-        test_classes = import_and_instantiate_classes(options.files)
-    setting =  Setting(apk_path=options.apk_path,
+    settings =  Setting(apk_path=options.apk_path,
                        device_serial=options.device_serial,
                        output_dir=options.output_dir,
                        timeout=options.timeout,
@@ -69,9 +104,12 @@ def main():
                        number_of_events_that_restart_app=options.number_of_events_that_restart_app,
                        debug_mode=options.debug_mode,
                        keep_app=options.keep_app,
+                       is_harmonyos=options.is_harmonyos
                        )
+    if options.files is not None:
+        test_classes = import_and_instantiate_classes(options.files, settings)
     print(Kea._all_testCase)
-    start_kea(test_classes[0],setting)
+    start_kea(test_classes[0], settings)
 
 if __name__ == "__main__":
     main()
