@@ -22,9 +22,11 @@ class Mobile(Driver):
     
     def __init__(self, delay=1, serial=None) -> None:
         self.delay = delay
+        super().__init__(serial=serial)
 
     def set_device_serial(self, serial):
-        super().__init__(serial=serial)
+        pass
+        # super().__init__(serial=serial)
         # setting operation delay
         # self.settings['operation_delay'] = (0, self.delay)
         # self.settings['wait_timeout'] = 5.0 # 默认控件等待时间
@@ -33,7 +35,9 @@ class Mobile(Driver):
         return super().__new__(cls, serial)
 
     def __call__(self, **kwargs: Any) -> "Ui":
-        return Ui(self, **kwargs, droidbot=self.droidbot)
+        kwargs
+        ui = Ui(self, **kwargs)
+        return ui
 
     def set_droidbot(self, droidbot:"DroidBot"):
         self.droidbot = droidbot
@@ -48,17 +52,19 @@ class Mobile(Driver):
 
 
 class Ui(UiObject):
-    def __init__(self, client: HmClient, droidbot:"DroidBot", **kwargs) -> None:
-        super().__init__(client, **kwargs)
+    def __init__(self, session:"Mobile", **kwargs) -> None:
+        client = session._client
+        droidbot = session.droidbot
         self.droidbot = droidbot
+        super().__init__(client, **kwargs)
 
     def click(self, offset=None):
         self.droidbot.device.save_screenshot_for_report(event_name="click")
-        super().click(offset)
+        super().click()
 
     def long_click(self, duration: float = 0.5):
         self.droidbot.device.save_screenshot_for_report(event_name="long_click")
-        super().long_click(duration)
+        super().long_click()
     
     def input_text(self, text):
         self.droidbot.device.save_screenshot_for_report(event_name="input_text " + text)

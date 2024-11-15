@@ -5,6 +5,10 @@ import math
 import os
 import random
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .device import Device
+
 from .utils import md5, deprecated
 from .input_event import SearchEvent, SetTextAndSearchEvent, TouchEvent, LongTouchEvent, ScrollEvent, SetTextEvent, KeyEvent
 
@@ -16,7 +20,7 @@ class DeviceState(object):
 
     def __init__(
         self,
-        device,
+        device:"Device",
         views,
         foreground_activity,
         activity_stack,
@@ -240,14 +244,14 @@ class DeviceState(object):
             dest_state_json_path = "%s/state_%s.json" % (output_dir, self.tag)
             json_dir = os.path.join(self.device.output_dir, "report_screenshot.json")
 
+            # get screenshot according to the system
             if not self.device.is_harmonyos:
                 if self.device.adapters[self.device.minicap]:
                     dest_screenshot_path = "%s/screen_%s.jpg" % (output_dir, self.tag)
                 else:
                     dest_screenshot_path = "%s/screen_%s.png" % (output_dir, self.tag)
             else:
-                # TODO Screenshot for HarmonyOS
-                pass
+                dest_screenshot_path = "%s/screen_%s.jpeg" % (output_dir, self.tag)
             try:
                 with open(json_dir, 'r') as json_file:
                     report_screens = json.load(json_file)
@@ -262,7 +266,7 @@ class DeviceState(object):
                 import shutil
 
                 shutil.copyfile(self.screenshot_path, dest_screenshot_path)
-                if self.device.adapters[self.device.minicap]:
+                if not self.device.is_harmonyos and self.device.adapters[self.device.minicap]:
                     report_screen = {
                         "event": "",
                         "event_index": str(self.tag),

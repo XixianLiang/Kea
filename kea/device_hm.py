@@ -500,7 +500,7 @@ class DeviceHM(Device):
 
         return local_path
 
-    def get_current_state(self):
+    def get_current_state(self, action_count=None):
         self.logger.debug("getting current device state...")
         current_state = None
         try:
@@ -518,7 +518,8 @@ class DeviceHM(Device):
                                         foreground_activity=foreground_activity,
                                         activity_stack=activity_stack,
                                         background_services=None,
-                                        screenshot_path=screenshot_path)
+                                        screenshot_path=screenshot_path,
+                                        tag=action_count)
         except Exception as e:
             self.logger.warning("exception in get_current_state: %s" % e)
             import traceback
