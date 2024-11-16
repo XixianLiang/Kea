@@ -1,0 +1,12 @@
+# env: the system of your PC (e.g. windows, macOS, Linux)
+env: Linux
+
+# system: the target harmonyOS
+# system: android
+
+system: harmonyOS
+device: 23E0224307001843
+app_path: /Users/atria/Desktop/coding/HMdroidbot/orangeMall.hap
+count: 100
+properties: 
+  - example.example_hm.py
