@@ -45,6 +45,9 @@ setup(
         "androguard==4.0.0",
         "attrs",
         "opencv-python",
-        "coloredlogs"
+        "coloredlogs",
+	"pyyaml",
+	"hmdriver2",
+	"hypothesis"
     ],
 )
