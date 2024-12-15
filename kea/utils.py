@@ -287,6 +287,7 @@ def sanitize_app_package_name(options):
     if not (package_name := options.apk_path) in package_list:
         raise AttributeError(f"No pacakge named {package_name} installed on device.") 
     else:
+        options.is_package = True
         print(f"pacakge named {package_name} is valid and already installed on device.")
         
 def sanitize_args(options):
